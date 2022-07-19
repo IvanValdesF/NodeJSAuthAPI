@@ -6,7 +6,7 @@ function authenticateToken(req,res,next){
     if(token == null){
         return res.status(401).json('unauthorized')
     }else{
-        jwt.verify(token,JWT_ACCESS_SECRET,(error,user)=>{
+        jwt.verify(token,process.env.JWT_ACCESS_SECRET,(error,user)=>{
             if(error){
                 return res.status(403).json(error.message)
             }else{

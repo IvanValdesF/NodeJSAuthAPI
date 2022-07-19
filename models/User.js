@@ -1,56 +1,92 @@
 
-const db = require('../db');
-
-
-
-//CREATE USER
-const addUser = (name,email,password) =>{
-    return db.none("INSERT INTO users (name,email,password) VALUES ($1,$2,$3)",[name,email,password])
-}
+const config = require('../db');
+const sql = require('mssql')
 
 //GET ALL USERS
-const getAllUsers = () => {
-    return db.any("SELECT * FROM users")
+async function getAllUsers(){
+    try{
+        const pool = await sql.connect(config);
+        let res = await pool.request().query("SELECT * FROM [user]");
+        console.log(res.recordset)
+        return res.recordset;
+    }catch(error){
+        console.log('error:' + error)
+    }
 }
 
-const getUser = (id) => {
-    return db.any("SELECT * FROM users WHERE id = $1",id)
+//CREATE USER
+async function addUser(name,email,password,phone){
+    try{
+        const pool = await sql.connect(config);
+    await pool.request()
+    .input("name",name)
+    .input("email",email)
+    .input("password",password)
+    .input("phone",phone)
+    .query("INSERT INTO [user] (userName,email,password,phoneNumber) VALUES (@name,@email,@password,@phone)")
+    }catch(err){
+        console.log(err)
+    }
 }
 
-const checkEmail = (email) =>{
-    return db.any("SELECT * FROM users WHERE email = $1",email)
+async function checkEmail(email){
+    try{
+        const pool = await sql.connect(config);
+        let res = await pool.request()
+        .input("email",email)
+        .query("SELECT * FROM [user] WHERE email = @email");
+        return res.recordset;
+    }catch(error){
+        console.log('error:' + error)
+    }
+    
 }
 
-const deleteUser = (id) =>{
-    return db.none("DELETE FROM users WHERE id = $1",id)
+async function getUser(id){
+    try{
+        const pool = await sql.connect(config);
+        let res = await pool.request()
+        .input("id",id)
+        .query("SELECT * FROM [user] WHERE userID = @id");
+        return res.recordset;
+    }catch(error){
+        console.log('error:' + error)
+    }
+
 }
 
 
-const updateUser = (name,id) => {
-    return db.none("UPDATE users SET name = $1 WHERE id = $2",[name,id])
+async function deleteUser(id){
+    try{
+        const pool = await sql.connect(config);
+        let res = await pool.request()
+        .input("id",id)
+        .query("DELETE FROM [user] WHERE userID = @id");
+        return res.recordset;
+    }catch(error){
+        console.log('error:' + error)
+    }
 }
 
-const checkPass = (password) =>{
-    db.any("SELECT s FROM users s WHERE s.password = $1",password)
+async function updateUser(name,id){
+    try{
+        const pool = await sql.connect(config);
+        let res = await pool.request()
+        .input("name",name)
+        .input("id",id)
+        .query("UPDATE [user] SET userName = @name WHERE userID = @id");
+        return res.recordset;
+    }catch(error){
+        console.log('error:' + error)
+    }
+    
 }
-
-
-
-
-const addToAuth = "INSERT INTO authUsers (email) VALUES ($1)"
-const removeFromAuth = "DELETE FROM authUsers WHERE email = $1"
-const checkAuthEmail = "SELECT * FROM authUsers WHERE email = $1";
 
 module.exports = {
-    addToAuth,
-    removeFromAuth,
-    checkAuthEmail,
-
-    addUser,
     getAllUsers,
-    getUser,
+    addUser,
     checkEmail,
+    getUser,
     deleteUser,
     updateUser,
-    checkPass
 }
